@@ -1,32 +1,32 @@
-# Send Arp
+# Arp Spoof
 BOB6기 취약점 분석 트랙 정주영
 
-이경문멘토님 과제 2.
-
+이경문멘토님 과제 3.
 
 ## 리포트
-sender(victim)의 arp table을 변조하라.
+arp spoofing 프로그램을 구현하라.
+
+victim(sender)에서 ping 통신이 원활히 작동하면 과제 완료.
 
 ## 프로그램
 ```sh
-send_arp <interface> <sender ip> <target ip>
-```
-```sh
-ex : send_arp wlan0 192.168.10.2 192.168.10.1
-```
+arp_spoof <interface> <sender ip 1> <target ip 1> [<sender ip 2> <target ip 2>...]
 
-sender ip는 victim ip라고도 함.
-
-target ip는 일반적으로 gateway임.
+ex : arp_spoof wlan0 192.168.10.2 192.168.10.1 192.168.10.1 192.168.10.2
+```
 
 ## 학습
+지난번 과제를 완료를 해야만 본 과제를 진행할 수 있음.
 
-구글링을 통해서 arp header의 구조(각 필드의 의미)를 익힌다.
+오늘 배운 "ARP spoofing의 모든 것" PPT 숙지할 것.
 
-pcap_sendpacket 함수를 이용해서 user defined buffer를 packet으로 전송하는 방법을 익힌다.
+## ps
+소스 코드는 가급적 C, C++(다른 programming language에 익숙하다면 그것으로 해도 무방).
 
-attacker(자신) mac 정보를 알아 내는 방법은 구글링을 통해서 코드를 베껴 와도 된다.
+bob@gilgil.net 계정으로 자신의 git repository 주소를 알려 줄 것.
 
-arp infection packet 구성에 필요한 sender mac 정보는 프로그램 레벨에서 자동으로(정상적인 arp request를 날리고 그 arp reply를 받아서) 알아 오도록 코딩한다.
+절대 BoB AP 네트워크를 대상으로 테스트하지 말 것.
 
-최종적으로 상대방을 감염시킬 수 있도록 eth header와 arp header를 구성하여 arp infection packet을 보내고 sender에서 target arp table이 변조되는 것을 확인해 본다.
+개인 허니팟을 띄워 하거나 BoBMil이라는 AP(암호는 BoB AP와 동일)를 사용할 것.
+
+필요에 따라 thread도 써야 하고, arp spoofing session을 list 관리도 해야 하고... 이번 과제부터 멘붕이 오기 시작할 것임. C++ 사용 추천.
