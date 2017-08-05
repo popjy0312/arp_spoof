@@ -1,4 +1,4 @@
-#include "send_arp.h"
+#include "arp_spoof.h"
 
 int main(int argc, char** argv){
     pcap_t *handle;   /* Session handle */
