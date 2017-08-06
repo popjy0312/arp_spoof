@@ -150,8 +150,8 @@ int ArpSpoof(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr Loca
 
         switch (CheckPacket(packet, SenderMac, SenderIP, TargetIP)){
             case 1: /* relay */
+                printf("relay\n");
                 if(relay(handle, packet, LocalMac, SenderMac, TargetMac, pheader->caplen) != 1){
-                    printf("relay\n");
                     return 0;
                 }
                 break;
