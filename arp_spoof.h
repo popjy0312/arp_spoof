@@ -15,7 +15,8 @@
 #include <stdlib.h>
 
 #define IP_ADDRLEN 4
-
+#define EXIT_SUCCESS 0
+#define EXIT_FAILURE 1
 
 struct __attribute__((packed)) arp_addr{
     struct ether_addr SenderMac;

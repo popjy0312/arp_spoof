@@ -37,7 +37,7 @@ int main(int argc, char** argv){
         return 2;
     }
     /* Get Local IP addr */
-    if(GetLocalIP(dev, &LocalIP) != 1){
+    if(GetLocalIP(dev, &LocalIP) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't get IPv4\n");
         return 2;
     }
@@ -48,7 +48,7 @@ int main(int argc, char** argv){
     printf("Get Local Mac Address...\n");
 
     /* Get Local Mac Address */
-    if(GetLocalMac(dev, &LocalMac) != 1){
+    if(GetLocalMac(dev, &LocalMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get local Mac Address\n");
         return 2;
     }
@@ -60,13 +60,13 @@ int main(int argc, char** argv){
     printf("Get Sender, Target Mac Address...\n");
 
     /* Get Sender Mac Address */
-    if(GetSenderMac(handle, LocalMac, LocalIP, SenderIP, &SenderMac) != 1){
+    if(GetSenderMac(handle, LocalMac, LocalIP, SenderIP, &SenderMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get Sender Mac Address\n");
         return 2;
     }
 
     /* Get Target Mac Address */
-    if(GetSenderMac(handle, LocalMac, LocalIP, TargetIP, &TargetMac) != 1){
+    if(GetSenderMac(handle, LocalMac, LocalIP, TargetIP, &TargetMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get Target Mac Address\n");
         return 2;
     }
@@ -78,7 +78,7 @@ int main(int argc, char** argv){
     printf("Generate Arp Reply Packet %s is at %s\n",inet_ntoa(TargetIP), ether_ntoa(&LocalMac));
 
     /* Generate Fake Arp Reply Packet and send */
-    if(ArpSpoof(handle,SenderMac,LocalMac,TargetIP, TargetMac, SenderIP) != 1){
+    if(ArpSpoof(handle,SenderMac,LocalMac,TargetIP, TargetMac, SenderIP) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Attack\n");
         return 2;
     }
