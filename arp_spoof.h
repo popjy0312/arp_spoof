@@ -13,10 +13,12 @@
 #include <linux/if.h>
 #include <netdb.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define IP_ADDRLEN 4
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
+#define MAX_THREAD_NUM 10
 
 struct __attribute__((packed)) arp_addr{
     struct ether_addr SenderMac;
@@ -25,6 +27,15 @@ struct __attribute__((packed)) arp_addr{
     struct in_addr TargetIP;
 };
 
+struct Pdata{
+    uint32_t idx;
+    char* dev;
+    char* SenderIP;
+    char* TargetIP;
+};
+
+
+void* thread_main(void* arg);
 
 /* input dev */
 /* output LocalIP Address */
