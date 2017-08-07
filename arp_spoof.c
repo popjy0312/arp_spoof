@@ -31,7 +31,7 @@ int GetLocalIP(char* dev, struct in_addr* LocalIP){
     return EXIT_SUCCESS;
 }
 
-int GetSenderMac(pcap_t* handle, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr SenderIP, struct ether_addr* SMac){
+int GetSenderMac(char* LogFilePath, pcap_t* handle, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr SenderIP, struct ether_addr* SMac){
     struct ether_addr BroadcastMac;
     struct ether_addr UnknownMac;
     char *Genpacket = (char *)malloc(ETHER_MAX_LEN);
@@ -43,7 +43,7 @@ int GetSenderMac(pcap_t* handle, struct ether_addr LocalMac, struct in_addr Loca
     struct arp_addr* parp_addr;
     const u_char *packet;
     /* broadcast request packet */
-    printf("Generate Request packet to ask who is %s\n",inet_ntoa(SenderIP));
+    LOG(LogFilePath, "Generate Request packet to ask who is %s\n",inet_ntoa(SenderIP));
 
     memcpy(&BroadcastMac, "\xFF\xFF\xFF\xFF\xFF\xFF",ETHER_ADDR_LEN);
     memcpy(&UnknownMac, "\x00\x00\x00\x00\x00\x00",ETHER_ADDR_LEN);
@@ -117,7 +117,6 @@ int GenArpPacket(struct ether_addr DMac, struct ether_addr SMac, uint16_t OpCode
     memcpy(*packet + sizeof(struct ether_header), &arp_hdr, sizeof(struct arphdr));
     memcpy(*packet + sizeof(struct ether_header) + sizeof(struct arphdr), &arp_addr, sizeof(struct arp_addr));
 
-    printf("Generated packet size: %d\n",*size);
     return EXIT_SUCCESS;
 }
 
@@ -133,7 +132,7 @@ int AttackPacket(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr 
 }
 
 
-int ArpSpoof(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP){
+int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP){
     int32_t res;
     struct pcap_pkthdr* pheader;
     const u_char* packet;
@@ -141,7 +140,7 @@ int ArpSpoof(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr Loca
     if(AttackPacket(handle, SenderMac, LocalMac, TargetIP, SenderIP) != EXIT_SUCCESS){
         return EXIT_FAILURE;
     }
-    printf("poisoning\n");
+    LOG(LogFilePath, "poisoning\n");
 
     while( (res = pcap_next_ex(handle, &pheader, &packet)) >= 0){
         /* time out */
@@ -150,13 +149,13 @@ int ArpSpoof(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr Loca
 
         switch (CheckPacket(packet, SenderMac, SenderIP, TargetIP)){
             case 1: /* relay */
-                printf("relay\n");
-                if(relay(handle, packet, LocalMac, SenderMac, TargetMac, pheader->caplen) != EXIT_SUCCESS){
+                LOG(LogFilePath, "relay\n");
+                if(relay(LogFilePath, handle, packet, LocalMac, SenderMac, TargetMac, pheader->caplen) != EXIT_SUCCESS){
                     return EXIT_FAILURE;
                 }
                 break;
             case 2: /* poisoning */
-                printf("poisoning\n");
+                LOG(LogFilePath, "poisoning\n");
                 if(AttackPacket(handle, SenderMac, LocalMac, TargetIP, SenderIP) != EXIT_SUCCESS){
                     return EXIT_FAILURE;
                 }
@@ -200,7 +199,7 @@ int CheckPacket(const u_char* packet, struct ether_addr shost, struct in_addr sI
     return 1;
 }
 
-int relay(pcap_t* handle, const u_char* packet, struct ether_addr LocalMac, struct ether_addr SenderMac, struct ether_addr TargetMac, uint32_t size){
+int relay(char* LogFilePath, pcap_t* handle, const u_char* packet, struct ether_addr LocalMac, struct ether_addr SenderMac, struct ether_addr TargetMac, uint32_t size){
     struct ether_header* peth_hdr;
 
     int i;
@@ -211,7 +210,7 @@ int relay(pcap_t* handle, const u_char* packet, struct ether_addr LocalMac, stru
 
     if(pcap_sendpacket(handle, packet, size)){
         for(i=0;i<size;i++)
-            printf("%02x ", packet[i] & 0xff);
+            LOG(LogFilePath, "%02x ", packet[i] & 0xff);
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
