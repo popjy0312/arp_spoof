@@ -102,13 +102,13 @@ void* thread_main(void* arg){
     LOG(LogFilePath,"Get Sender, Target Mac Address...\n");
 
     /* Get Sender Mac Address */
-    if(GetSenderMac(LogFilePath, handle, LocalMac, LocalIP, SenderIP, &SenderMac) != EXIT_SUCCESS){
+    if(GetMac(LogFilePath, handle, LocalMac, LocalIP, SenderIP, &SenderMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get Sender Mac Address(Thread %d)\n", data->idx);
         return 2;
     }
 
     /* Get Target Mac Address */
-    if(GetSenderMac(LogFilePath, handle, LocalMac, LocalIP, TargetIP, &TargetMac) != EXIT_SUCCESS){
+    if(GetMac(LogFilePath, handle, LocalMac, LocalIP, TargetIP, &TargetMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get Target Mac Address(Thread %d)\n", data->idx);
         return 2;
     }

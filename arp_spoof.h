@@ -64,7 +64,7 @@ int GetLocalMac(char* dev, struct ether_addr* LocalMac);
 /* input handle, LacalMac, LocalIP, SenderIP */
 /* output SMac(Sender Mac address) */
 /* send normal ARP request packet and recieve ARP reply packet */
-int GetSenderMac(char* LogFilePath, pcap_t *handle, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr SenderIP, struct ether_addr* SMac);
+int GetMac(char* LogFilePath, pcap_t *handle, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr SenderIP, struct ether_addr* SMac);
 
 
 /* input DMac, SMac, OpCode, SenderIP, SenderMac, TargetIP, TargetMac */

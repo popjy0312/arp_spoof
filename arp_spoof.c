@@ -31,7 +31,7 @@ int GetLocalIP(char* dev, struct in_addr* LocalIP){
     return EXIT_SUCCESS;
 }
 
-int GetSenderMac(char* LogFilePath, pcap_t* handle, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr SenderIP, struct ether_addr* SMac){
+int GetMac(char* LogFilePath, pcap_t* handle, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr SenderIP, struct ether_addr* SMac){
     struct ether_addr BroadcastMac;
     struct ether_addr UnknownMac;
     char *Genpacket = (char *)malloc(ETHER_MAX_LEN);
