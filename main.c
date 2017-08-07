@@ -59,10 +59,10 @@ void* thread_main(void* arg){
     sprintf(LogFilePath, "%s/thread_%d_%s_%s", data->fold, data->idx, data->SenderIP, data->TargetIP);
     /* check arguments are IP format */
     if(inet_pton(AF_INET, data->SenderIP, &SenderIP) != 1){
-        return -1;
+        return (void*)-1;
     }
     if(inet_pton(AF_INET, data->TargetIP, &TargetIP) != 1){
-        return -1;
+        return (void*)-1;
     }
     /* Define device */
     dev = data->dev;
@@ -76,12 +76,12 @@ void* thread_main(void* arg){
     /* Open session in promiscuous mode */
     if( (handle = pcap_open_live(dev, BUFSIZ, 1, 1, errbuf)) == NULL){
         fprintf(stderr, "Couldn't open device(Thread %d) %s: %s\n", data->idx, dev, errbuf);
-        return 2;
+        return (void*)2;
     }
     /* Get Local IP addr */
     if(GetLocalIP(dev, &LocalIP) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't get IPv4(Thread %d)\n", data->idx);
-        return 2;
+        return (void*)2;
     }
 
     LOG(LogFilePath,"Local IP is %s\n",inet_ntoa(LocalIP));
@@ -92,7 +92,7 @@ void* thread_main(void* arg){
     /* Get Local Mac Address */
     if(GetLocalMac(dev, &LocalMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get local Mac Address(Thread %d)\n", data->idx);
-        return 2;
+        return (void*)2;
     }
 
     LOG(LogFilePath,"Success!!\n");
@@ -104,13 +104,13 @@ void* thread_main(void* arg){
     /* Get Sender Mac Address */
     if(GetMac(LogFilePath, handle, LocalMac, LocalIP, SenderIP, &SenderMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get Sender Mac Address(Thread %d)\n", data->idx);
-        return 2;
+        return (void*)2;
     }
 
     /* Get Target Mac Address */
     if(GetMac(LogFilePath, handle, LocalMac, LocalIP, TargetIP, &TargetMac) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Get Target Mac Address(Thread %d)\n", data->idx);
-        return 2;
+        return (void*)2;
     }
 
     LOG(LogFilePath,"Sender Mac Address is %s\n",ether_ntoa(&SenderMac));
@@ -122,10 +122,10 @@ void* thread_main(void* arg){
     /* Generate Fake Arp Reply Packet and send */
     if(ArpSpoof(LogFilePath, handle,SenderMac,LocalMac,TargetIP, TargetMac, SenderIP) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Attack(Thread %d)\n", data->idx);
-        return 2;
+        return (void*)2;
     }
 
     LOG(LogFilePath,"Done!\n");
-    return 0;
+    return (void*)0;
 }
 
