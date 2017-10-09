@@ -42,7 +42,10 @@ int main(int argc, char** argv){
     printf("Thread running...\n");
     printf("Exit Process: Ctrl + C\n");
 
-    while(1);
+    for(i=0; i * 2 + 2 < argc; i++){
+        pthread_join(thread[i], (void**)&ret );
+    }
+    return 0;
 }
 
 void* thread_main(void* arg){
