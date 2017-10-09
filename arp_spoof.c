@@ -178,7 +178,7 @@ int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr
         return 0;
 
     /* check packet destination is me(attacker) */
-    if(memcmp(peth_hdr->ether_dhost, &LocalMac, ETHER_ADDR_LEN))
+    if(!memcmp(peth_hdr->ether_dhost, &LocalMac, ETHER_ADDR_LEN))
         return 0;
     /* check is arp request */
     if(peth_hdr->ether_type == htons(ETHERTYPE_ARP)){
