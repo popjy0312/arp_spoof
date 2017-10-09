@@ -123,7 +123,7 @@ void* thread_main(void* arg){
     LOG(LogFilePath,"Generate Arp Reply Packet %s is at %s\n",inet_ntoa(TargetIP), ether_ntoa(&LocalMac));
 
     /* Generate Fake Arp Reply Packet and send */
-    if(ArpSpoof(LogFilePath, handle,SenderMac,LocalMac,TargetIP, TargetMac, SenderIP) != EXIT_SUCCESS){
+    if(ArpSpoof(LogFilePath, handle,SenderMac,LocalMac, LocalIP, TargetIP, TargetMac, SenderIP) != EXIT_SUCCESS){
         fprintf(stderr, "Couldn't Attack(Thread %d)\n", data->idx);
         return (void*)2;
     }

@@ -76,9 +76,9 @@ int GenArpPacket(struct ether_addr DMac, struct ether_addr SMac, uint16_t OpCode
 int AttackPacket(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct in_addr SenderIP);
 
 
-int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP);
+int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP);
 
-int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr LocalMac, struct in_addr sIp, struct in_addr dIp);
+int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr sIp, struct in_addr dIp);
 
 int relay(char* LogFilePath, pcap_t* handle, const u_char* packet, struct ether_addr LocalMac, struct ether_addr SenderMac, struct ether_addr TargetMac, uint32_t size);
 

