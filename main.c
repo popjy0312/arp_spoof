@@ -16,7 +16,7 @@ int main(int argc, char** argv){
     }
 
     /* check max args */
-    if(argc > (MAX_THREAD_NUM - 1)*2){
+    if(argc > MAX_THREAD_NUM *2){
         printf("too much args...\n");
         printf("usage : %s <interface> <sender ip 1> <target ip 1> [<sender ip 2> <target ip 2>...]\n",argv[0]);
         return -1;
