@@ -10,7 +10,14 @@ int main(int argc, char** argv){
     char logFolder[MAX_FOLDER_NAME_LEN];
 
     /* check args */
-    if(argc < 4 || argc & 1 || argc > MAX_THREAD_NUM*2){
+    if(argc < 4 || argc % 2 == 1){
+        printf("usage : %s <interface> <sender ip 1> <target ip 1> [<sender ip 2> <target ip 2>...]\n",argv[0]);
+        return -1;
+    }
+
+    /* check max args */
+    if(argc > (MAX_THREAD_NUM - 1)*2){
+        printf("too much args...\n");
         printf("usage : %s <interface> <sender ip 1> <target ip 1> [<sender ip 2> <target ip 2>...]\n",argv[0]);
         return -1;
     }
