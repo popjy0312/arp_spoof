@@ -23,6 +23,7 @@
 #define MAX_THREAD_NUM 10
 #define MAX_FOLDER_NAME_LEN 25
 #define MAX_FILEPATH_LEN 100
+#define POISON_INTERVAL 1000	/* poisoning every 1000 ms */
 
 #define LOG(file, ...)\
 {\
